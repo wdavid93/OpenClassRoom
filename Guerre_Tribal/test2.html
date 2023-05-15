@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Exemple d'automatisation avec JavaScript</title>
+</head>
+<body>
+
+	<h1>Exemple d'automatisation avec JavaScript</h1>
+
+	<p>Cliquez sur le bouton pour ouvrir le site exemple.fr et remplir le formulaire :</p>
+
+	<button onclick="remplirFormulaire()">Remplir le formulaire</button>
+
+	<script>
+		function remplirFormulaire() {
+			// Ouvrir le site exemple.fr
+//			var fenetre = window.open('https://www.guerretribale.fr/');
+		var fenetre = window.open('https://www.guerretribale.fr/');
+		fenetre.addEventListener('load', function() {
+		  console.log(fenetre);
+		});
+					alert("fenetre !");
+			// Attendre que la page se charge
+//			fenetre.addEventListener('load', function() {
+			alert("load fenetre !");
+				// Saisir zone1
+				var zone1 = fenetre.document.querySelector('input[id="user"]');
+				if (zone1) {
+					zone1.value = '*test1';
+					alert("La zone 1 a été remplie avec succès !");
+				} else {
+					alert("Erreur: Impossible de trouver la zone 1 !");
+				}
+
+				// Saisir zone2
+				var zone2 = fenetre.document.querySelector('input[id="password"]');
+				if (zone2) {
+					zone2.value = '*test2*';
+					alert("La zone 2 a été remplie avec succès !");
+				} else {
+					alert("Erreur: Impossible de trouver la zone 2 !");
+				}
+
+				// Soumettre le formulaire
+				var formulaire = fenetre.document.getElementById('login_form');
+				if (formulaire) {
+					formulaire.submit();
+					alert("Le formulaire a été soumis avec succès !");
+				} else {
+					alert("Erreur: Impossible de trouver le formulaire !");
+				}
+				
+				// Afficher un message de confirmation
+				alert("Le formulaire a été rempli avec succès !");
+//			});
+		}
+	</script>
+
+</body>
+</html>
+
+

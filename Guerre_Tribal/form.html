@@ -1,0 +1,19 @@
+
+<input id="user" name="username" type="text"> 
+<script>document.querySelector('#user').value = 'arion1'  </script> 
+
+<input id="password" name="password" type="password">
+<script>document.querySelector('#password').value = 'MiMa5158**' </script>
+
+<input type="submit" class="submit" id="login_submit_button"> 
+<script>document.querySelector('#login_submit_button').click()</script>
+
+<script>
+setTimeout(() => {  
+    if (document.querySelector("#success_message")) {
+        console.log("Connexion réussie!")
+    } else {
+        console.log("Echec de connexion")
+    }
+}, 1000) 
+</script>
