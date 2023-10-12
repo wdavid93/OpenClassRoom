@@ -1,0 +1,15 @@
+*.csv
+*.zip
+*.mp4
+.ipynb_checkpoints/
+Soutenance
+Soutenance/
+FIG/
+SAVE/
+DATA/
+data/
+data_saved/
+models/
+model/
+.ipynb_checkpoints/
+cache/

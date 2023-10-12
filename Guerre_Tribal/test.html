@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Exemple d'automatisation avec JavaScript</title>
+</head>
+<body>
+
+	<h1>Exemple d'automatisation avec JavaScript</h1>
+
+	<p>Cliquez sur le bouton pour ouvrir le site guerretribale.fr et remplir le formulaire :</p>
+
+	<button onclick="remplirFormulaire()">Remplir le formulaire</button>
+
+	<script>
+		function remplirFormulaire() {
+			// Ouvrir le site guerretribale.fr
+			window.open('https://www.guerretribale.fr/');
+
+			// Attendre que la page se charge
+			setTimeout(function() {
+				// Saisir le nom d'utilisateur
+				var nomUtilisateur = document.getElementsById('username')[0];
+				nomUtilisateur.value = 'arion1111';
+
+				// Saisir le mot de passe
+				var motDePasse = document.getElementsById('password')[0];
+				motDePasse.value = 'MiMa5158**';
+
+				// Soumettre le formulaire
+				var formulaire = document.getElementById('login_form');
+				formulaire.submit();
+			}, 5000);
+		}
+	</script>
+
+</body>
+</html>

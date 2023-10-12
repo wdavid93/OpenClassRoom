@@ -1,0 +1,10 @@
+version: "3.3"
+
+services:
+  tensorflow:  # you can change this to whatever you want.
+    container_name: tensorflow
+    image: jupyter/tensorflow-notebook
+    volumes:
+      - "C:\\Users\\Zbook\\OneDrive\\Documents\\OpenClassRoom\\Tensorflow:/home/jovyan/work"
+    ports:
+      - 127.0.0.1:10123:8888
