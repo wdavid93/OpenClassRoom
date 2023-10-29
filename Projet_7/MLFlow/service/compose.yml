@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  # Service pour l'API de Projet 7
+  projet7API:
+    image: py-mlflow:0.1.0
+    container_name: py-mlflow
+    restart: unless-stopped
+    ports:
+      - 5001:5001  # Mappe le port 80 du conteneur au port 7780 de l'hôte
+    volumes:
+      - ../../Livrable:/mlflow  # Montage du répertoire local "Livrable" dans le conteneur sous "/mlflow"
