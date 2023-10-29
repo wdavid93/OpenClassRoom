@@ -17,10 +17,12 @@ from flask import Flask
 URL_API = "http://projet7API:5000/"  # Utilisation en production
 
 def main():
+
     # Initialisation de l'application
     init = st.markdown("*Initialisation de l'application en cours...*")
     init = st.markdown(init_api())
-
+    shap.initjs()
+    # st.write("Version mlflow: ", mlflow_version())
     # Affichage du titre et du sous-titre
     st.title("Implémenter un modèle de scoring")
     st.markdown("<i>API répondant aux besoins du projet 7 pour le parcours Data Scientist OpenClassRoom</i>", unsafe_allow_html=True)
@@ -168,29 +170,43 @@ def main():
     #         st.write("SHAP data_for_prediction", data_for_prediction)           
 
     #         shap.force_plot(expected_value, shap_values, data_for_prediction)
+    # Affichage des dossiers similaires
+    chk_voisins = st.checkbox("Afficher dossiers similaires?")
+
+    if chk_voisins:
+        similar_id = load_voisins()
+        st.markdown("<u>Liste des 10 dossiers les plus proches de ce client :</u>", unsafe_allow_html=True)
+        st.write(similar_id)
+        st.markdown("<i>Target 1 = Client en faillite</i>", unsafe_allow_html=True)
+    else:
+        st.markdown("<i>Informations masquées</i>", unsafe_allow_html=True)
 
     if st.checkbox("Afficher les informations du client et explication SHAP?"):
-        shap_data = predict_explanation()  # Appel de la fonction pour obtenir les valeurs SHAP
+        # shap_data = grap_shap()  # Appel de la fonction pour obtenir les valeurs SHAP
+        # Appel à la fonction pour afficher les graphiques SHAP
+        predict_explanation()        
         st.write("SHAP 1 id_client", id_client)
-        st.write("SHAP 2 shap_data", shap_data)
+        # st.write("SHAP 2 shap_data", shap_data)
         # Générez les graphiques SHAP dans Streamlit
-        if shap_data:
-            st.write("Graphique SHAP Summary :")
-            shap_summary_plot = generate_shap_summary_plot(shap_data)
-            st.write("SHAP 3 shap_summary_plot", shap_summary_plot)    
-            st.pyplot(shap_summary_plot)
-            st.header("SHAP Values")
+        # if shap_data:
+        #     st.write("Graphique SHAP Summary :")
+        #     shap_summary_plot = generate_shap_summary_plot(shap_data)
+        #     st.write("SHAP 3 shap_summary_plot", shap_summary_plot)    
+        #     st.pyplot(shap_summary_plot)
+        #     st.header("SHAP Values")
 
-            # Afficher les valeurs SHAP pour une prédiction spécifique
-            st.write("SHAP 4 Values for Prediction", id_client)
-            shap_values = shap_data["shap_values"]
-            st.write("SHAP shap_values", shap_values)
-            expected_value = shap_data["expected_value"]
-            st.write("SHAP expected_value", expected_value)            
-            data_for_prediction = shap_data["data_for_prediction"]
-            st.write("SHAP data_for_prediction", data_for_prediction)           
+        #     # Afficher les valeurs SHAP pour une prédiction spécifique
+        #     st.write("SHAP 4 Values for Prediction", id_client)
+        #     shap_values = shap_data["shap_values"]
+        #     st.write("SHAP shap_values", shap_values)
+        #     expected_value = shap_data["expected_value"]
+        #     st.write("SHAP expected_value", expected_value)            
+        #     data_for_prediction = shap_data["data_for_prediction"]
+        #     st.write("SHAP data_for_prediction", data_for_prediction)           
 
-            shap.force_plot(expected_value, shap_values, data_for_prediction)
+        #     shap.force_plot(expected_value, shap_values, data_for_prediction)
+
+
             # shap.summary_plot(shap_values, subsampled_test_data, feature_names=X_train.columns, max_display=10)
 
         # Utiliser shap.force_plot pour afficher un graphique SHAP interactif
@@ -259,16 +275,6 @@ def main():
 
     # ... (autres parties du tableau de bord)
 # 
-    # Affichage des dossiers similaires
-    chk_voisins = st.checkbox("Afficher dossiers similaires?")
-
-    if chk_voisins:
-        similar_id = load_voisins()
-        st.markdown("<u>Liste des 10 dossiers les plus proches de ce client :</u>", unsafe_allow_html=True)
-        st.write(similar_id)
-        st.markdown("<i>Target 1 = Client en faillite</i>", unsafe_allow_html=True)
-    else:
-        st.markdown("<i>Informations masquées</i>", unsafe_allow_html=True)
 
 
 # Fonction pour l'initialisation de l'API
@@ -367,28 +373,157 @@ def load_revenus_population():
 #     except ValueError:
 #         st.error("Erreur lors de la récupération des données SHAP.")
 #     return None
-@st.cache_data
+# # @st.cache_data
+# def predict_explanation():
+#     try:
+#         explanation_data = requests.get(URL_API + "predict_explanation")
+#         st.write(f"explanation_data  : {explanation_data}")
+#         explanation_data = explanation_data.json()
+#         # shap.multioutput_decision_plot(expected_value, shap_values, row_index=row_index, feature_names=feature_names, highlight=highlight)
+#         shap.summary_plot(explanation_data, feature_names=df_train.columns)      
+#         # if "shap_values" in explanation_data:
+#         #     return explanation_data["shap_values"]
+#         # else:
+#         #     st.error("Les données SHAP ne sont pas disponibles dans la réponse.")
+#         #     return {}
+#     except json.JSONDecodeError as e:
+#         st.error(f"Erreur lors de la récupération des explications : {e}")
+#         return {}
+# @st.cache_data
 def predict_explanation():
     try:
-        shap_data = requests.get(URL_API + "predict_explanation", params={"id_client": id_client})
-        st.write("get_shap_data shap_data", shap_data)
-        st.write("get_shap_data id_client", id_client)
-        if not shap_data.text:
-            st.error("Erreur lors de la récupération des données SHAP, shap_data.text est vide.")
-            return None  # Retournez None si la réponse est vide
-        # shap_data = shap_data.json()
-        return shap_data
-    except ValueError:
-        st.error("Erreur lors de la récupération des données SHAP.")
-        return None
+        explanation_data = requests.get(URL_API + "predict_explanation")
+        st.write(f"explanation_data  : {explanation_data}")
+        explanation_data = explanation_data.json()
+        
+        # Si vous avez obtenu des données SHAP, vous pouvez les afficher.
+        if "data" in explanation_data:
+            shap_df = explanation_data["data"]
+            shap_values = shap_df['data']
+            feature_names = shap_df['columns']
+            
+            # Affichez le graphique SHAP
+            shap.summary_plot(shap_values, feature_names=feature_names)
+        else:
+            st.error("Les données SHAP ne sont pas disponibles dans la réponse.")
+    except json.JSONDecodeError as e:
+        st.error(f"Erreur lors de la récupération des explications : {e}")
 
-@st.cache_data
-def generate_shap_summary_plot(shap_data):
-    shap_values = pd.DataFrame(shap_data["data"])
-    data_client = pd.DataFrame(shap_data["columns"])
-    plt.figure()
-    shap.summary_plot(shap_values, data_client)
-    return plt
+def generate_decision_plot(log_reg_explainer, X_test, row_index=0, highlight=None):
+    expected_value = [log_reg_explainer.expected_value.tolist()]  # Convertit la valeur attendue en liste
+    shap_values = [log_reg_explainer.shap_values(X_test)]  # Convertit les valeurs SHAP en liste
+    feature_names = df_train.columns.tolist()  # Convertit les noms de colonnes en liste
+
+    shap.multioutput_decision_plot(expected_value, shap_values, row_index=row_index, feature_names=feature_names, highlight=highlight)
+def generate_summary_plot(log_reg_explainer, X_test):
+    shap.summary_plot(log_reg_explainer.shap_values(X_test),
+                      feature_names=df_train.columns)
+# @st.cache_data
+# def grap_shap():
+#     try:
+#         st.write("debut grap_shap dans dashboard")
+#         log_reg_explainer , X_test = requests.get(URL_API + "grap_shap") #, params={"id_client": id_client})
+#         # st.write("grap_shap shap_data", shap_data)
+#         st.write("grap_shap id_client", id_client)
+#         generate_decision_plot(log_reg_explainer, X_test)    
+#         generate_summary_plot(log_reg_explainer, X_test)
+#         # if not shap_data.text:
+#         #     st.error("Erreur lors de la récupération des données SHAP, shap_data.text est vide.")
+#         #     return None  # Retournez None si la réponse est vide
+#         # # shap_data = shap_data.json()
+#         # return shap_data
+#         st.write("Fin grap_shap dans dashboard")
+#     except ValueError:
+#         st.error("Erreur lors de la récupération des données SHAPdans la fonction grap_shap dans le dahsboard.")
+#         return None
+
+
+# Fonction pour afficher les graphiques SHAP
+# @st.cache_data
+# def plot_shap_graphs():
+#     try:
+#         response = requests.get(URL_API + "grap_shap") #, params={"id_client": id_client})
+#         st.write(f"response : {response}")
+#         if response.status_code == 200:
+#             log_reg_explainer, X_test = response.json()
+#             expected_value = [log_reg_explainer.expected_value.tolist()]
+#             shap_values = [log_reg_explainer.shap_values(X_test)]
+#             feature_names = X_test.columns.tolist()
+#             st.write(f"feature_names : {feature_names}")
+#             # Créez des graphiques SHAP
+#             shap.multioutput_decision_plot(expected_value, shap_values, feature_names=feature_names)
+
+#             shap.summary_plot(log_reg_explainer.shap_values(X_test), feature_names=X_test.columns)
+
+#     except Exception as e:
+#         st.error(f"Erreur lors de l'affichage des graphiques SHAP : {e}")
+# @st.cache_data
+# def plot_shap_graphs():
+#     try:
+#         # Faites une demande GET à votre API
+#         response = requests.get(URL_API + "grap_shap")  # Remplacez "grap_shap" par votre URL d'API
+#         st.write(f"response : {response}")
+
+#         if response.status_code == 200:
+#             X, Y = response.json()
+#             log_reg, X_test, X_train, Y_train, Y_test = train_logistic_regression(X, Y)
+        
+#             log_reg_explainer = shap.LinearExplainer(log_reg, X_train)
+
+#             sample_idx = 0
+#             val1, shap_vals = explain_sample_with_shap(log_reg, log_reg_explainer, X_test, sample_idx)
+
+#             expected_value = log_reg_explainer.expected_value
+#             shap_values = log_reg_explainer.shap_values(X_test)
+#             feature_names = X_test.columns.tolist()
+#             st.write(f"feature_names : {feature_names}")
+            
+#             # Créez des graphiques SHAP
+#             shap.multioutput_decision_plot(expected_value, shap_values, feature_names=feature_names)
+#             shap.summary_plot(shap_values, feature_names=feature_names)
+
+#     except Exception as e:
+#         st.error(f"Erreur lors de l'affichage des graphiques SHAP : {e}")
+
+# # Fonction pour l'entraînement de la régression logistique
+# def train_logistic_regression(X, Y):
+#     logging.info("Début train_logistic_regression dans api")
+#     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, train_size=0.85, test_size=0.15, stratify=Y, random_state=123, shuffle=True)
+    
+#     imputer = SimpleImputer(strategy='mean')
+#     X_train = imputer.fit_transform(X_train)
+#     X_test = imputer.transform(X_test)
+    
+#     log_reg = LogisticRegression()
+#     log_reg.fit(X_train, Y_train)
+#     logging.info("Fin train_logistic_regression dans api")
+#     return log_reg, X_test, X_train, Y_train, Y_test
+
+# def explain_sample_with_shap(log_reg, log_reg_explainer, X_test, sample_idx):
+#     shap_vals = log_reg_explainer.shap_values(X_test[sample_idx])
+    
+# @st.cache_data
+# def predict_explanation():
+#     try:
+#         shap_data = requests.get(URL_API + "predict_explanation", params={"id_client": id_client})
+#         st.write("get_shap_data shap_data", shap_data)
+#         st.write("get_shap_data id_client", id_client)
+#         if not shap_data.text:
+#             st.error("Erreur lors de la récupération des données SHAP, shap_data.text est vide.")
+#             return None  # Retournez None si la réponse est vide
+#         # shap_data = shap_data.json()
+#         return shap_data
+#     except ValueError:
+#         st.error("Erreur lors de la récupération des données SHAP.")
+#         return None
+
+# @st.cache_data
+# def generate_shap_summary_plot(shap_data):
+#     shap_values = pd.DataFrame(shap_data["data"])
+#     data_client = pd.DataFrame(shap_data["columns"])
+#     plt.figure()
+#     shap.summary_plot(shap_values, data_client)
+#     return plt
 
 
 # Fonction pour charger la prédiction de risque de faillite

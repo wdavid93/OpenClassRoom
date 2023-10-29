@@ -1,26 +1,36 @@
 from joblib import load
-
 from flask import Flask, jsonify, request, jsonify, render_template
 import json
 
 import pandas as pd
 import numpy as np
+import xgboost as xgb
+
+import shap
+import logging
+
+# import ipython
+import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import NearestNeighbors
+from imblearn.over_sampling import SMOTE
 
 from imblearn.under_sampling  import RandomUnderSampler
 
-import xgboost as xgb
 
-import shap
-# import ipython
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 
 # Create an instance of the Flask class that is the WSGI application.
 # The first argument is the name of the application module or package,
 # typically __name__ when using a single module.
+# app = Flask(__name__)
+# from flask_cors import CORS
+
 app = Flask(__name__)
+# CORS(app)  # Activer CORS pour gérer les demandes Cross-Origin (si nécessaire)
 
 # Flask route decorators map / and /hello to the hello function.
 # To add other resources, create functions that generate the page contents
@@ -47,12 +57,13 @@ id_client = pd.DataFrame(id_client)
 def init_model():
     
     # On prépare les données
-    df_train, df_test = features_engineering(data_train, data_test)
+    feature_train, feature_test = features_engineering(data_train, data_test)
 
     print("Features engineering done")
     # On fait le préprocessing des données
-    df_train, df_test = preprocesseur(df_train, df_test)
+    global df_train
 
+    df_train, df_test = preprocesseur(feature_train, feature_test)
     # On transforme le dataset de test préparé en variabe
     # globale, car il est utilisé dans la fonction predict
     global train
@@ -66,6 +77,10 @@ def init_model():
     X, y = data_resampler(df_train, data_train)
     print("Resampling done")
 
+    # Équilibrage des données d'entraînement avec SMOTE
+    X, y = data_resampler_SMOTE(df_train, data_train)
+    print("Resampling SMOTE done")    
+
     # On entraîne le modèle et on le transforme en
     # variable globale pour la fonction predict
     global clf_xgb
@@ -76,8 +91,53 @@ def init_model():
     knn = entrainement_knn(df_train)
     print("Training knn done")
 
-    return jsonify(["Initialisation terminée."])
+    # # Configuration de la journalisation
+    # global log_dir
+    # log_dir = "C:/Users/Zbook/OpenClassRoom/ProjetsGitsOCR/Projet_7/Log"  # Chemin du répertoire de logs
+    # os.makedirs(log_dir, exist_ok=True)
 
+    # # Configurer le module de journalisation
+    # global log_filename
+    # log_filename = os.path.join(log_dir, "api.log")
+    # logging.basicConfig(filename=log_filename, level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+
+    return jsonify(["Initialisation terminée."])
+# @app.route("/init_model", methods=["GET"])
+# def init_model():
+#     with mlflow.start_run():
+#         # On prépare les données
+#         df_train, df_test = features_engineering(data_train, data_test)
+#         print("Features engineering done")
+
+#         # On fait le préprocessing des données
+#         df_train, df_test = preprocesseur(df_train, df_test)
+#         global train
+#         train = df_train.copy()
+#         global test
+#         test = df_test.copy()
+#         print("Preprocessing done")
+
+#         # On fait un resampling des données d'entraînement
+#         X, y = data_resampler(df_train, data_train)
+#         print("Resampling done")
+
+#         # Entraînement du modèle
+#         global clf_xgb
+#         clf_xgb = entrainement_XGBoost(X, y)
+#         print("Training xgboost done")
+
+#         # Enregistrement du modèle dans MLflow
+#         mlflow.xgboost.log_model(clf_xgb, "xgboost_model")
+
+#         # Enregistrement de métriques
+#         mlflow.log_params({
+#             "n_estimators": clf_xgb.n_estimators,
+#             "learning_rate": clf_xgb.learning_rate,
+#             "max_depth": clf_xgb.max_depth
+#         })
+        
+#         return jsonify(["Initialisation terminée."])
 
 # Chargement des données pour la selection de l'ID client
 @app.route("/load_data", methods=["GET"])
@@ -234,29 +294,56 @@ def predict():
 #     shap_df = pd.DataFrame(shap_values.values, columns=data_test.columns)
 
 #     return shap_df.to_dict(orient="split")
-@app.route("/predict_explanation", methods=["GET"])
-def predict_explanation():
 
-    id = request.args.get("id_client")
-    index = data_test[data_test["SK_ID_CURR"] == int(id)].index.values
-    data_client = test[index]
-    
-    # Obtenez les valeurs SHAP pour la prédiction en utilisant shap.KernelExplainer
-    shap_values = get_shap_values(data_client)
 
-    # Transformez les valeurs SHAP en DataFrame
-    shap_df = pd.DataFrame(shap_values, columns=data_test.columns)
 
-    return shap_df.to_dict(orient="split")
+# @app.route("/grap_shap", methods=["GET"])                    
+# def grap_shap():
+#     logging.info("Début grap_shap dans api")
 
-def get_shap_values(data_client):
-    
-    explainer = shap.KernelExplainer(clf_xgb.predict_proba, train)
-    
-    # Calcul des valeurs SHAP pour le client
-    shap_values = explainer.shap_values(data_client)
+#     X = train
+#     Y = train['TARGET']
 
-    return shap_values
+#     log_reg, X_test, X_train, Y_train, Y_test = train_logistic_regression(X, Y)
+ 
+#     log_reg_explainer = shap.LinearExplainer(log_reg, X_train)
+
+#     sample_idx = 0
+#     val1, shap_vals = explain_sample_with_shap(log_reg, log_reg_explainer, X_test, sample_idx)
+
+#     expected_value = [log_reg_explainer.expected_value.tolist()]  # Convertit la valeur attendue en liste
+#     shap_values = [log_reg_explainer.shap_values(X_test)]  # Convertit les valeurs SHAP en liste
+#     feature_names = df_train.columns.tolist()  # Convertit les noms de colonnes en liste
+
+#     shap.multioutput_decision_plot(expected_value, shap_values, row_index=row_index, feature_names=feature_names, highlight=highlight)
+#     plt.savefig('multioutput_decision_plot.png')
+#     shap.summary_plot(log_reg_explainer.shap_values(X_test),
+#                       feature_names=df_train.columns)
+#     plt.savefig('shap_summary.png')                  
+#     return jsonify({
+#         "shap_values": shap_df.to_dict(orient="split"),
+#         "shap_summary_plot": "shap_summary_plot.png",
+#         "shap_summary": "shap_summary.png"
+#     })
+
+# @app.route("/grap_shap", methods=["GET"])                    
+# def grap_shap():
+#     # logging.info("Début grap_shap dans api")
+
+#     data_train = pd.read_csv("application_train.csv")
+#     data_test = pd.read_csv("application_test.csv")
+
+#     feature_train, feature_test = features_engineering(data_train, data_test)
+
+#     print("Features engineering done")
+#     # On fait le préprocessing des données
+#     df_train, df_test = preprocesseur(feature_train, feature_test)
+
+#     X = df_train.copy()
+#     Y = df_train['TARGET']
+
+#     # logging.info("Fin grap_shap dans api")
+#     return X, Y
 
 @app.route("/load_voisins", methods=["GET"])
 def load_voisins():
@@ -411,32 +498,44 @@ def preprocesseur(df_train, df_test):
         train = df_train.drop(columns = ["TARGET"])
     else:
         train = df_train.copy()
-        
+    
+    
+    logging.info("# Feature names")
     # Feature names
     features = list(train.columns)
-
-
+    
+    logging.info("# Median imputation")
     # Median imputation of missing values
     imputer = SimpleImputer(strategy = 'median')
-
+    
+    logging.info("# Scale each")
     # Scale each feature to 0-1
     scaler = MinMaxScaler(feature_range = (0, 1))
-
+    
+    logging.info("# Replace the")
     # Replace the boolean column by numerics values 
     train["DAYS_EMPLOYED_ANOM"] = train["DAYS_EMPLOYED_ANOM"].astype("int")
-
+    
+    logging.info("# Fit on")
     # Fit on the training data
     imputer.fit(train)
-
+    
+    logging.info("# Transform both")
     # Transform both training and testing data
     train = imputer.transform(train)
     test = imputer.transform(df_test)
-
+    
+    logging.info("# Repeat with")
     # Repeat with the scaler
+    logging.info("scaler")
     scaler.fit(train)
+    logging.info("scale train")
     train = scaler.transform(train)
+    logging.info("scale test")
     test = scaler.transform(test)
     
+    logging.info(train)
+
     return train, test
 
 def data_resampler(df_train, target):
@@ -445,6 +544,12 @@ def data_resampler(df_train, target):
     X_rsp, y_rsp = rsp.fit_resample(df_train, target["TARGET"])
 
     return X_rsp, y_rsp
+
+# Fonction pour l'équilibrage des données avec SMOTE
+def data_resampler_SMOTE(df_train, target):
+    smote = SMOTE(sampling_strategy='auto', random_state=0)
+    X_smote, y_smote = smote.fit_resample(df_train, target["TARGET"])
+    return X_smote, y_smote
 
 def entrainement_XGBoost(X, y):
 
@@ -473,6 +578,72 @@ def entrainement_knn(df):
     knn = NearestNeighbors(n_neighbors=10, algorithm='auto').fit(df)
 
     return knn 
+
+# ---------------------------------
+# @app.route("/predict_explanation", methods=["GET"])
+# def predict_explanation():
+
+#     # Obtenez les valeurs SHAP pour la prédiction en utilisant shap.KernelExplainer
+#     shap_values = get_shap_values()
+
+#     # Transformez les valeurs SHAP en DataFrame
+#     shap_df = pd.DataFrame(shap_values, columns=data_test.columns)
+
+#     return shap_df.to_dict(orient="split")
+@app.route("/predict_explanation", methods=["GET"])
+def predict_explanation():
+    # Obtenez les valeurs SHAP
+    shap_values = get_shap_values()
+
+    # Transformez les valeurs SHAP en un format approprié
+    shap_df = pd.DataFrame(shap_values, columns=df_train.columns)
+    
+    # Convertissez-le en un dictionnaire pour renvoyer les données
+    shap_data = {
+        "data": shap_df.to_dict(orient="split"),
+    }
+
+    return shap_data
+
+def get_shap_values():
+    
+    X = df_train.copy()
+    Y = df_train['TARGET']
+
+    log_reg, X_test, X_train, Y_train, Y_test = train_logistic_regression(X, Y)
+ 
+    log_reg_explainer = shap.LinearExplainer(log_reg, X_train)
+
+    sample_idx = 0
+    val1, shap_values = explain_sample_with_shap(log_reg, log_reg_explainer, X_test, sample_idx)
+
+    return shap_values
+
+def explain_sample_with_shap(log_reg, log_reg_explainer, X_test, sample_idx):
+    shap_vals = log_reg_explainer.shap_values(X_test[sample_idx])
+
+    if isinstance(log_reg, LogisticRegression):
+        val1 = log_reg_explainer.expected_value + shap_vals[0]
+    else:
+        # Gérer le cas où votre modèle a plus de classes (plus de valeurs SHAP)
+        # Vous devrez ajuster cela en fonction de la structure de votre modèle
+        val1 = log_reg_explainer.expected_value[0] + shap_vals[0].sum()
+
+    return val1, shap_vals
+# Fonction pour l'entraînement de la régression logistique
+def train_logistic_regression(X, Y):
+    logging.info("Début train_logistic_regression dans api")
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, train_size=0.85, test_size=0.15, stratify=Y, random_state=123, shuffle=True)
+    
+    imputer = SimpleImputer(strategy='mean')
+    X_train = imputer.fit_transform(X_train)
+    X_test = imputer.transform(X_test)
+    
+    log_reg = LogisticRegression()
+    log_reg.fit(X_train, Y_train)
+    logging.info("Fin train_logistic_regression dans api")
+    return log_reg, X_test, X_train, Y_train, Y_test
+# --------------------------
 
 if __name__ == "__main__":
     # app.run(host="localhost", port="5000", debug=True)

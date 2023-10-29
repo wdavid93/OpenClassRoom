@@ -13,3 +13,5 @@ models/
 model/
 .ipynb_checkpoints/
 cache/
+mlruns/
+__pycache__/

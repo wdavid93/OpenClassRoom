@@ -1,0 +1,69 @@
+supervisé = target
+non supervisé , j'ai pas de cible precise : clustering = projet des client
+
+--------------------------------------------------------
+Les méthodes supervisées et non supervisées sont deux approches différentes en apprentissage automatique, et elles sont principalement utilisées pour des types de tâches différents.
+
+**Apprentissage supervisé** :
+- Dans l'apprentissage supervisé, vous disposez de données d'entraînement qui sont associées à des étiquettes ou des résultats connus. Par exemple, si vous construisez un modèle pour prédire si un e-mail est du spam ou non, 
+vous avez un ensemble de données d'entraînement avec des e-mails marqués comme spam ou non.
+- L'objectif principal est de faire en sorte que le modèle apprenne à associer correctement les données d'entrée (caractéristiques) aux étiquettes de sortie (résultats).
+- Les critères de test courants incluent l'**exactitude (accuracy)**, qui mesure le pourcentage de prédictions correctes, et le **R²** (dans le cas de la régression), qui mesure la qualité d'ajustement du modèle.
+
+**Apprentissage non supervisé** :
+- Dans l'apprentissage non supervisé, vous n'avez pas d'étiquettes ou de résultats connus dans vos données d'entraînement. Vous essayez de découvrir des modèles, des structures ou des groupes inhérents aux données.
+- L'objectif principal est l'exploration des données et la découverte d'informations cachées. Par exemple, la segmentation des clients en groupes basés sur leur comportement d'achat.
+- Les critères de test sont différents de l'apprentissage supervisé. Par exemple, l'**ARI (Adjusted Rand Index)** est utilisé pour évaluer la qualité de la segmentation dans un contexte de clustering non supervisé.
+
+Pour expliquer cela simplement à quelqu'un qui ne fait pas de data science :
+
+- En apprentissage supervisé, le modèle apprend à prédire quelque chose de spécifique, comme "spam" ou "non-spam" pour les e-mails.
+- En apprentissage non supervisé, il essaie plutôt de découvrir des groupes ou des structures dans les données sans savoir ce qu'il cherche à l'avance.
+
+Les critères de test dépendent de la nature de la tâche. En supervisé, vous voulez savoir si le modèle peut faire des prédictions précises, alors qu'en non supervisé, vous voulez savoir si le modèle peut trouver 
+des structures ou des groupes significatifs dans les données. L'exactitude et le R² sont principalement 
+utilisés en apprentissage supervisé, tandis que l'ARI est plus couramment utilisé en apprentissage non supervisé pour évaluer la qualité des regroupements ou des segments découverts.
+-----------------------------------------------------------
+
+Dans le cadre du projet de la Place de Marché, voici les principaux points à retenir et à expliquer simplement lors de votre présentation :
+
+**Principe Fondamental : Automatisation de la Classification des Articles**
+- L'objectif principal est d'automatiser le processus d'attribution de catégories aux articles sur la place de marché.
+
+**Étude de Faisabilité : Première Itération**
+1. **Prétraitement des Données Textuelles et d'Images :** Avant de travailler sur les données, nous devons les préparer en nettoyant les descriptions textuelles et en améliorant la qualité des images.
+2. **Extraction de Caractéristiques :** Nous extrayons des informations significatives des données textuelles et des images, notamment en utilisant des approches telles que le bag-of-words, Word2Vec, BERT 
+et des algorithmes de vision par ordinateur comme CNN.
+3. **Réduction de Dimension :** Comme les données sont souvent volumineuses, nous réduisons leur dimension pour faciliter leur traitement.
+4. **Représentation Visuelle :** Nous projetons les données sur un graphique 2D pour visualiser comment les produits se regroupent en fonction de leurs catégories réelles.
+5. **Analyse Visuelle :** En examinant le graphique, nous cherchons à déterminer si les produits de même catégorie se regroupent naturellement.
+
+**Classification Supervisée : Deuxième Itération**
+- Après avoir établi la faisabilité de la classification automatique, nous passons à la classification supervisée à partir des images en utilisant une méthode d'apprentissage profond.
+- La data augmentation est appliquée pour améliorer la performance du modèle.
+
+**Collecte de Produits "Champagne" via une API :**
+- Nous collectons des produits spécifiques ("champagne") via une interface de programmation.
+- Les données collectées incluent foodId, label, category, foodContentsLabel, et l'image.
+
+**Principes Importants :**
+- Nettoyage et préparation des données textuelles et des images.
+- Extraction d'informations significatives à partir des données (texte et image).
+- Réduction de dimension pour faciliter le traitement.
+- Visualisation des données pour détecter des tendances visuelles.
+- Utilisation de l'apprentissage profond pour la classification supervisée.
+- Data augmentation pour améliorer les modèles.
+- Collecte de données via des API en respectant les normes RGPD.
+
+**Explication Simple :**
+- Nous préparons et améliorons les données textuelles et images.
+- Nous extrayons des informations importantes à partir de ces données.
+- Nous réduisons la complexité des données pour une meilleure compréhension.
+- Nous examinons graphiquement comment les produits se regroupent naturellement.
+- Nous utilisons l'apprentissage profond pour classifier les images.
+- Nous augmentons les données pour de meilleurs résultats.
+- Nous collectons des produits spécifiques via une interface automatisée en respectant la confidentialité des données.
+
+**L'objectif final :** Améliorer l'expérience des vendeurs et des acheteurs sur la place de marché en automatisant la classification des produits pour une recherche et une mise en ligne plus faciles.
+
+

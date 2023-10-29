@@ -1,0 +1,12 @@
+docker compose down 
+docker compose up -d
+
+PS C:\Users\Zbook\OpenClassRoom\ProjetsGitsOCR\Projet_7> docker compose down 
+[+] Running 3/3
+ ? Container projet7api          Removed                                                                                                                                                          1.6s 
+ ? Container projet7dashboard    Removed                                                                                                                                                          1.4s 
+
+PS C:\Users\Zbook\OpenClassRoom\ProjetsGitsOCR\Projet_7> docker compose up -d
+[+] Running 3/3
+ ? Network projet_7_projet7-net  Created                                                                                                                                                          0.7s 
+ ? Container projet7api          Started    

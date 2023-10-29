@@ -1,0 +1,148 @@
+https://minervaconcept.fr/wp-content/uploads/2020/11/Implementez_un_modele_de_scoring.pdf
+
+https://www.linkedin.com/pulse/d%C3%A9ploiement-dune-api-web-en-python-sur-azure-julien-di-giulio/
+
+
+Ouvrir le lecteur immersif
+Mon premier article sur LinkedIn! Je vous propose ici un Tutorial pour apprendre à déployer une API web programmée en Python sur Microsoft Azure. Pourquoi ce Tutorial? Tout simplement parce que j'ai rencontré beaucoup de difficultés pour réussir ce déploiement, et j'ai la possibilité d'aider les autres à faire ce type d'opération.
+
+Un autre point spécifique à ce Tutorial est l'explication pour faire fonctionner un modèle de classification XGBoost sur une Web App Service Azure. En effet, cela nécessite un rajout de dépendance Linux qui n'est pas présent directement à la création de la Web App. Tout est expliqué dans cet article!
+
+J'ai essayé d'être le plus clair possible, en détaillant bien chaque opération. Toutefois, je prendrais en compte chaque proposition susceptible d'améliorer le contenu.
+
+Tous les fichiers évoqués dans cet articles sont disponibles sur mon dépôt GitHub à l'adresse suivante : https://github.com/JulienDiGiulio/openclassrooms_projet7
+
+Voici tout d'abord le sommaire de cet article :
+
+Contexte
+Présentation de l'application
+Préparation au déploiement
+Déploiement
+Remerciements
+
+
+Vous êtes prêts? Alors commençons tout de suite par présenter le contexte...
+
+1. Contexte :
+Cet article est basé sur un projet professionnalisant du parcours Data Scientist proposé par OpenClassRooms.
+
+Pour cet exercice, je travaille dans une entreprise qui propose des crédits à la consommation. Il nous est demandé de réaliser une application de Scoring, ici un modèle de classification binaire qui permet de détecter si un client est potentiellement à risque pour l'entreprise.
+
+2. Présentation de l'application :
+Le développement se fait donc en langage Python. Pour ce projet, j'utilise la version 3.7.5 de Python.
+
+L'application utilise des librairies assez courantes en Machine Learning telles que Pandas, Numpy, Scikit-learn, ainsi que XGBoost comme modèle de classification.
+
+La partie développement du dashboard/API est construite avec la librairie Streamlit (https://www.streamlit.io/) qui présente l'avantage d'avoir un Framework intégré (Tornado) et une syntaxe vraiment simple à comprendre et à écrire, en Python pur notamment.
+
+Aucun texte alternatif pour cette image
+3. Préparation au déploiement :
+Fichiers nécessaires :
+Aucun texte alternatif pour cette image
+Pour déployer l'application, nous avons besoin d'un certains nombres de fichiers de configuration, ainsi que les fichiers propres à son bon fonctionnement. Nous allons expliquer chacun des fichiers de la liste ci-contre.
+
+Les fichiers utiles à l'application :
+
+Tout d'abord, nous allons trouver les datasets utilisés et traités lors de la phase de construction de notre modèle de classification. Ensuite le fichier ocdsp7_pkl.py qui est notre fichier contenant le code de l'application. Nous avons un fichier xgboost.pickle qui contient le modèle XGBoost que nous avons entraîné lors de la phase de construction et sérialisé pour le déploiement. Cette opération est intéressante pour optimiser les temps de traitement lors de la navigation sur le Web. Le fichier logo est une simple image pour faire joli sur la page, et le fichier Notebook_Projet7.ipynb tant qu'à lui n'est pas utile au déploiement...
+
+Passons à ce qui nous intéresse vraiment ici, les fichiers de configuration.
+
+Les fichiers de configuration :
+
+Aucun texte alternatif pour cette image
+Nous allons créer une image Docker pour ensuite la sauvegarder dans un Registry sur Azure. Nous avons donc besoin de créer un Dockerfile qui nous permettra de paramétrer notre environnement jusqu'à l'exécution de l'application.
+
+Aucun texte alternatif pour cette image
+La librairie Streamlit nécessite des fichiers spécifiques permettant de configurer l'accès au Port de l'API depuis le monde extérieur. Pour cela, nous devons créer deux fichiers TOML : config.toml et credential.toml.
+
+Aucun texte alternatif pour cette image
+Et enfin, un fichier requirements.txt qui liste l'ensemble des librairies utilisées pour faire fonctionner notre application. (Pour info, ce fichier peut-être créé automatiquement avec la commande : pip freeze > requirements.txt dans le répertoire de travail)
+
+4. Déploiement :
+Pré-requis :
+
+- Avant toute chose, vous devez créer un compte sur le portail Azure (https://azure.microsoft.com/).
+
+- Pour ce Tutorial, nous allons utiliser l'interface de lignes de commandes Azure CLI, vous pouvez l'installer à partir de ce lien (https://docs.microsoft.com/fr-fr/cli/azure/install-azure-cli?view=azure-cli-latest). L'invite de commande nous permettra de créer toutes les opérations nécessaires au déploiement, de la création de l'image Docker, au Service Plan d'Azure.
+
+Vous avez effectué ces étapes? Alors commençons...
+
+Aucun texte alternatif pour cette image
+a) Ouvrir le PowerShell
+Sur votre ordinateur, commencez par ouvrir le PowerShell. Sur Windows 10, dans la barre de recherche, vous recherchez "PowerShell" et vous l'exécutez en tant qu'administrateur.
+
+
+
+Aucun texte alternatif pour cette image
+b) Connexion à Azure
+Connectez vous à Azure en tapant la commande : az login. Une fenêtre s'ouvrira alors sur votre navigateur pour vous connecter avec vos identifiants. Une fois fait, vous pouvez fermer cette fenêtre.
+
+Aucun texte alternatif pour cette image
+c) Créer un Resource Group
+Nous allons maintenant créer un groupe de ressources (Resource Group) qui contiendra l'ensemble des services que nous avons besoin (Registry, WebApp, ServicePlan). Pour cela, tapez la ligne de commande suivante : az group create -l centralus -n appgroup
+
+-l est la location. La zone géographique où est créé le Resource Group et -n est un nom que vous choisirez.
+
+Aucun texte alternatif pour cette image
+d) Créer un Container Registry
+Créons maintenant le Container Registry. C'est le container dans lequel sera stockée l'image Docker que nous créerons juste après. Tapez la ligne de commande : az acr create --name appregistry --resource-group appgroup --sku basic --admin-enabled true
+
+--name est le nom que vous donnez au Registry et --resource-group le nom que vous avez donné à l'étape précédente.
+
+e) Fichiers de configurations
+Passons aux fichiers de configuration! Pour les deux fichiers config.toml et credential.toml, je vous conseille de récupérer, soit ceux présents dans mon dépôt GitHub à cette adresse : https://github.com/JulienDiGiulio/openclassrooms_projet7/tree/master/api_config_prod, soit à l'adresse suivante : https://github.com/MarcSkovMadsen/awesome-streamlit. C'est le dépôt de MarcSkovMadsen à partir duquel j'ai trouvé pas mal de réponses à mes questions. Une fois que vous les avez récupéré, vous les placez dans votre répertoire de travail.
+
+ASTUCE : Pour écrire et enregistrer un fichier .toml, avec l'IDE Microsoft VisualCode, il faut télécharger l'extension TOML, cela donne accès au format .toml lors de l'enregistrement.
+
+Un aperçu de mon fichier Dockerfile :
+
+Aucun texte alternatif pour cette image
+Comme dit précédemment, le fichier Dockerfile permet de configurer l'environnement de l'application jusqu'à son exécution, à la dernière ligne de ce fichier. Les deux fichier .toml doivent être situés dans un répertoire .streamlit. Tout est traité dans ce fichier Dockerfile.
+
+POINT XGBOOST : Je profite de cet endroit pour détailler un point important si vous utilisez comme moi XGBoost. Nativement la machine virtuelle créée chez Microsoft Azure n'a pas les dépendances nécessaires pour le faire fonctionner, et vous avez un beau message d'erreur au démarrage de votre application. J'ai quand même trouvé la solution après avoir cherché trèèèès longtemps, donc je vous l'explique ici. Vous pouvez la voir dans le Dockerfile. En effet, il suffit de rajouter les deux lignes RUN apt-get update et Run apt-get install -y libgomp1 (qui est la librairie manquante en natif sur la machine virtuelle), et tout vos problèmes s'envolent comme par magie!
+
+Un aperçu du fichier requirements.txt :
+
+Aucun texte alternatif pour cette image
+f) Création image Docker
+Construisons maintenant notre image Docker et sauvons la directement dans notre Container Registry Azure. Vous avez tous les fichiers nécessaires dans votre répertoire de travail? Tapez alors cette ligne de commande dans le PowerShell : az acr build --registry appregistry --resource-group appgroup --image appimage .
+
+--registry est le nom du container définit précédemment tout comme --resource-group est le nom du Resource Group. --image est le nom que l'on donne à notre image Docker qui sera sauvegardée dans Azure. Enfin, notez bien le "." à la fin de la commande qui définit le répertoire de travail courant. Cette opération peut être assez longue en fonction de votre environnement.
+
+Aucun texte alternatif pour cette image
+A la fin de cette étape, vous devriez avoir un message de ce type :
+
+g) Vérification sauvegarde image
+Aucun texte alternatif pour cette image
+Vous pouvez maintenant aller voir sur votre portail Azure, dans votre Registry que votre image est bien sauvegardée. Pour cela, cliquez sur "Groupe de ressources" et ensuite sélectionnez celui que vous avez créé précédemment.
+
+Aucun texte alternatif pour cette image
+Vous verrez ensuite dans la liste des ressources, le Registry que vous avez créé, sélectionnez le.
+
+Aucun texte alternatif pour cette image
+Lorsque vous êtes arrivés dans votre Registry, cliquez sur Dépôt dans le menu de gauche, premier élément dans la catégorie "Services".
+
+Normalement vous devriez voir dans la liste, l'image que vous avez créé à l'étape précédente.
+
+h) Création Service Plan
+Créons maintenant le Service Plan pour notre application Web. Cela déterminera la taille de la machine qui exécutera l'image Docker. Ici, j'ai choisi l'offre B1 qui est gratuite pendant un mois (à ce jour). Nous pouvons créer un Service Plan avec la ligne de commande : az appservice plan create -g appgroup -n appserviceplan -l centralus --is-linux --sku B1
+
+Aucun texte alternatif pour cette image
+-g est le groupe de ressources, -n le nom de Service Plan, -l est la location géographique (utilisez la même que pour le groupe de ressources). --is-linux est fortement conseillé pour une application Python, et enfin --sku est l'offre choisie.
+
+
+
+i) Création WebApp
+Enfin créons notre Webapp! Nous nous apprêtons à créer une Webapp depuis un container Docker sauvegardé dans un Container Registry sur Azure, et le tout est possible à partir de la commande suivante : az webapp create -g appgroup -p appserviceplan -n appwebapp -i appregistry.azurecr.io/appimage:latest
+
+-g est le nom du groupe de ressources et -p le nom du Service Plan. -n est le nom que l'on donne à notre Webapp, et enfin -i est la configuration de notre Webapp avec l'image Docker contenue dans le Registry. :latest signifie que l'on veut la dernière version de l'image (si jamais on a effectué des modifications dedans).
+
+Et voilà, vous avez maintenant tout configuré! Si vous retournez dans votre Groupe de ressources, vous verrez trois éléments : Le Container Registry, le Service Plan, et la WebApp.
+
+Aucun texte alternatif pour cette image
+Aucun texte alternatif pour cette image
+Pour aller voir votre application en ligne, sélectionnez la Webapp. Une fois sur sa page d'administration, cliquez sur l'URL. Cela peut mettre un peu de temps à être opérationnel, si jamais vous avez un code erreur 502 la première fois, réessayez. Si ça le refait, attendez un peu et réessayez, vous finirez par voir que votre application est configurée pour fonctionner sur le Cloud!
+
+L'avantage de cette méthode est que si vous êtes amenés à faire une modification sur votre application, vous n'avez qu'à re-sauvegarder l'image sur la Webapp, et cela se mettra directement à jour. Super boulot!
+
+

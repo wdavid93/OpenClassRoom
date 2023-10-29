@@ -29,7 +29,7 @@ jsonschema
 kiwisolver
 MarkupSafe
 matplotlib
-MLflow
+mlflow
 more-itertools
 numpy
 pandas
@@ -39,6 +39,7 @@ protobuf
 pyparsing
 pyrsistent
 python-dateutil
+pytest
 pytz
 PyYAML
 requests
@@ -46,6 +47,7 @@ s3transfer
 scikit-learn
 scipy
 seaborn
+SMOTE
 shap
 six
 streamlit

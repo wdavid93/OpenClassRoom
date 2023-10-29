@@ -28,7 +28,7 @@ joblib
 jsonschema
 kiwisolver
 MarkupSafe
-MLflow
+mlflow
 matplotlib
 more-itertools
 numpy
@@ -39,6 +39,7 @@ protobuf
 pyparsing
 pyrsistent
 python-dateutil
+pytest
 pytz
 PyYAML
 requests
@@ -48,6 +49,7 @@ scipy
 seaborn
 shap 
 six
+SMOTE
 streamlit
 toml
 toolz
