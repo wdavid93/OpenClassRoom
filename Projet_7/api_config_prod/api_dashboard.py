@@ -13,7 +13,7 @@ import xgboost as xgb
 
 from joblib import load
 
-@st.cache_data
+@st.cache
 def load_data():
 
     # On charge les données
@@ -28,7 +28,7 @@ def load_data():
 
     return data_train, data_test, data_train_prepared, data_test_prepared
 
-@st.cache_data
+@st.cache
 def load_xgboost():
 
     clf_xgb = load("xgboost.pickle")
@@ -36,7 +36,7 @@ def load_xgboost():
     return clf_xgb
 
 
-@st.cache_data
+@st.cache(allow_output_mutation=True)
 def load_knn(df_train):
 
     knn = entrainement_knn(df_train)
@@ -44,7 +44,7 @@ def load_knn(df_train):
 
     return knn
 
-#@st.cache_data()
+#@st.cache()
 #def load_logo():
     # Construction de la sidebar
     # Chargement du logo
@@ -52,7 +52,7 @@ def load_knn(df_train):
     
 #    return logo
 
-@st.cache_data
+@st.cache()
 def load_infos_gen(data_train):
 
     # Requête permettant de récupérer :
@@ -81,14 +81,14 @@ def identite_client(data_test, id):
 
     return data_client
 
-@st.cache_data
+@st.cache
 def load_age_population(data_train):
     
     data_age = round((data_train["DAYS_BIRTH"] / -365), 2)
 
     return data_age
 
-@st.cache_data
+@st.cache
 def load_revenus_population(data_train):
     
     # On supprime les outliers qui faussent le graphique de sortie
