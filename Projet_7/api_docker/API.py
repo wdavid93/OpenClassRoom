@@ -56,6 +56,7 @@ id_client = pd.DataFrame(id_client)
 @app.route("/init_model", methods=["GET"])
 def init_model():
     
+    global feature_train
     # On prépare les données
     feature_train, feature_test = features_engineering(data_train, data_test)
 
@@ -74,11 +75,13 @@ def init_model():
 
     print("Preprocessing done")
     # On fait un resampling des données d'entraînement
-    X, y = data_resampler(df_train, data_train)
+    A, b = data_resampler(df_train, data_train)
     print("Resampling done")
 
+    global X
     # Équilibrage des données d'entraînement avec SMOTE
-    X, y = data_resampler_SMOTE(df_train, data_train)
+    # X, y = data_resampler_SMOTE(df_train, data_train)
+    X, y = data_resampler_SMOTE(A, b)
     print("Resampling SMOTE done")    
 
     # On entraîne le modèle et on le transforme en
@@ -103,6 +106,7 @@ def init_model():
 
 
     return jsonify(["Initialisation terminée."])
+
 # @app.route("/init_model", methods=["GET"])
 # def init_model():
 #     with mlflow.start_run():
@@ -138,6 +142,30 @@ def init_model():
 #         })
         
 #         return jsonify(["Initialisation terminée."])
+
+
+@app.route("/shap_xgb_x", methods=["GET"])
+def show_shap_xgb_x():
+    return X.tolist()
+
+@app.route("/shap_xgb_expected", methods=["GET"])
+def show_shap_xgb_expected():
+    explainer = shap.TreeExplainer(clf_xgb)
+    shap_values = explainer.shap_values(X)
+    expected = explainer.expected_value
+
+    return json.dumps(expected.item())
+
+@app.route("/shap_xgb_values", methods=["GET"])
+def show_shap_xgb_values():
+    explainer = shap.TreeExplainer(clf_xgb)
+    shap_values = explainer.shap_values(X)
+
+    return shap_values.tolist()
+
+@app.route("/shap_xgb_df", methods=["GET"])
+def show_shap_xgb_df():
+    return feature_train.loc[:, ~feature_train.columns.str.contains('^Unnamed')].to_json()
 
 # Chargement des données pour la selection de l'ID client
 @app.route("/load_data", methods=["GET"])
@@ -548,7 +576,8 @@ def data_resampler(df_train, target):
 # Fonction pour l'équilibrage des données avec SMOTE
 def data_resampler_SMOTE(df_train, target):
     smote = SMOTE(sampling_strategy='auto', random_state=0)
-    X_smote, y_smote = smote.fit_resample(df_train, target["TARGET"])
+    X_smote, y_smote = smote.fit_resample(df_train, target)
+    # X_smote, y_smote = smote.fit_resample(df_train, target["TARGET"])
     return X_smote, y_smote
 
 def entrainement_XGBoost(X, y):
@@ -647,4 +676,4 @@ def train_logistic_regression(X, Y):
 
 if __name__ == "__main__":
     # app.run(host="localhost", port="5000", debug=True)
-    app.run(host="0.0.0.0", port="5000", debug=True)    
+    app.run(host="0.0.0.0", port="5001", debug=True)    

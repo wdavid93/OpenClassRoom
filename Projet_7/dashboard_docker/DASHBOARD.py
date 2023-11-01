@@ -3,33 +3,37 @@ import streamlit as st
 import requests
 import json
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import shap
 # import ipython
 from PIL import Image
 from flask import Flask
+import streamlit.components.v1 as components
+
 
 # from "C:\Users\Zbook\OpenClassRoom\ProjetsGitsOCR\Projet_7\api_docker\api" import get_shap_values, predict_explanation
 
 
 # Définition de l'URL de l'API
-# URL_API = "http://localhost:5000/" # Utilisation en local
-URL_API = "http://projet7API:5000/"  # Utilisation en production
+URL_API = "http://localhost:5001/"  # Utilisation en local
+# URL_API = "http://projet7API:5000/"  # Utilisation en production
+
 
 def main():
 
     # Initialisation de l'application
     init = st.markdown("*Initialisation de l'application en cours...*")
     init = st.markdown(init_api())
-    shap.initjs()
     # st.write("Version mlflow: ", mlflow_version())
     # Affichage du titre et du sous-titre
     st.title("Implémenter un modèle de scoring")
-    st.markdown("<i>API répondant aux besoins du projet 7 pour le parcours Data Scientist OpenClassRoom</i>", unsafe_allow_html=True)
+    st.markdown("<i>API répondant aux besoins du projet 7 pour le parcours Data Scientist OpenClassRoom</i>",
+                unsafe_allow_html=True)
 
     # Affichage d'informations dans la sidebar
     st.sidebar.subheader("Informations générales")
-    
+
     # Chargement du logo
     logo = load_logo()
     st.sidebar.image(logo, width=200)
@@ -43,7 +47,8 @@ def main():
     nb_credits, rev_moy, credits_moy, targets = load_infos_gen()
 
     # Affichage des infos dans la sidebar
-    st.sidebar.markdown("<u>Nombre crédits existants dans la base :</u>", unsafe_allow_html=True)
+    st.sidebar.markdown(
+        "<u>Nombre crédits existants dans la base :</u>", unsafe_allow_html=True)
     st.sidebar.text(nb_credits)
 
     # # Graphique camembert
@@ -51,20 +56,23 @@ def main():
     # plt.pie(targets, explode=[0, 0.1], labels=["Solvable", "Non solvable"], autopct='%1.1f%%', shadow=True, startangle=90)
     # st.sidebar.pyplot()
     # Graphique camembert
-    st.sidebar.markdown("<u>Différence solvabilité / non solvabilité</u>", unsafe_allow_html=True)
+    st.sidebar.markdown(
+        "<u>Différence solvabilité / non solvabilité</u>", unsafe_allow_html=True)
     # Désactivez l'avertissement lié à Matplotlib
     st.set_option('deprecation.showPyplotGlobalUse', False)
     fig, ax = plt.subplots()
-    ax.pie(targets, explode=[0, 0.1], labels=["Solvable", "Non solvable"], autopct='%1.1f%%', shadow=True, startangle=90)
+    ax.pie(targets, explode=[0, 0.1], labels=[
+           "Solvable", "Non solvable"], autopct='%1.1f%%', shadow=True, startangle=90)
     st.sidebar.pyplot(fig)
 
-
     # Revenus moyens
-    st.sidebar.markdown("<u>Revenus moyens $(USD) :</u>", unsafe_allow_html=True)
+    st.sidebar.markdown("<u>Revenus moyens $(USD) :</u>",
+                        unsafe_allow_html=True)
     st.sidebar.text(rev_moy)
 
     # Montant crédits moyen
-    st.sidebar.markdown("<u>Montant crédits moyen $(USD) :</u>", unsafe_allow_html=True)
+    st.sidebar.markdown(
+        "<u>Montant crédits moyen $(USD) :</u>", unsafe_allow_html=True)
     st.sidebar.text(credits_moy)
 
     # Affichage de l'ID client sélectionné
@@ -75,15 +83,19 @@ def main():
     infos_client = identite_client()
     if st.checkbox("Afficher les informations du client?"):
         infos_client = identite_client()
-        st.write("Statut famille :**", infos_client["NAME_FAMILY_STATUS"][0], "**")
-        st.write("Nombre d'enfant(s) :**", infos_client["CNT_CHILDREN"][0], "**")
-        st.write("Age client :", int(infos_client["DAYS_BIRTH"].values / -365), "ans.")
+        st.write("Statut famille :**",
+                 infos_client["NAME_FAMILY_STATUS"][0], "**")
+        st.write("Nombre d'enfant(s) :**",
+                 infos_client["CNT_CHILDREN"][0], "**")
+        st.write("Age client :", int(
+            infos_client["DAYS_BIRTH"].values / -365), "ans.")
 
         data_age = load_age_population()
         plt.style.use('fivethirtyeight')
         plt.figure(figsize=(9, 9))
         plt.hist(data_age, edgecolor='k', bins=25)
-        plt.axvline(int(infos_client["DAYS_BIRTH"].values / -365), color="red", linestyle=":")
+        plt.axvline(
+            int(infos_client["DAYS_BIRTH"].values / -365), color="red", linestyle=":")
         plt.title('Age of Client')
         plt.xlabel('Age (years)')
         plt.ylabel('Count')
@@ -105,10 +117,11 @@ def main():
         # plt.ylabel('Count')
         # # Avant d'afficher les graphiques, désactivez l'avertissement
         # st.set_option('deprecation.showPyplotGlobalUse', False)
-    
+
         # st.pyplot()
         st.subheader("*Revenus*")
-        st.write("Total revenus client :", infos_client["AMT_INCOME_TOTAL"][0], "$")
+        st.write("Total revenus client :",
+                 infos_client["AMT_INCOME_TOTAL"][0], "$")
 
         data_revenus = load_revenus_population()
 
@@ -118,7 +131,8 @@ def main():
 
         # Plot the distribution of revenus
         ax.hist(data_revenus, edgecolor='k')
-        ax.axvline(infos_client["AMT_INCOME_TOTAL"][0], color="red", linestyle=":")
+        ax.axvline(infos_client["AMT_INCOME_TOTAL"]
+                   [0], color="red", linestyle=":")
         ax.set_title('Revenus du Client')
         ax.set_xlabel('Revenus ($ USD)')
         ax.set_ylabel('Count')
@@ -128,22 +142,24 @@ def main():
 
         st.pyplot(fig)
 
-        # 
+        #
 
         st.write("Montant du crédit :", infos_client["AMT_CREDIT"][0], "$")
         st.write("Annuités crédit :", infos_client["AMT_ANNUITY"][0], "$")
-        st.write("Montant du bien pour le crédit :", infos_client["AMT_GOODS_PRICE"][0], "$")
+        st.write("Montant du bien pour le crédit :",
+                 infos_client["AMT_GOODS_PRICE"][0], "$")
     else:
         st.markdown("<i>Informations masquées</i>", unsafe_allow_html=True)
 
     # Affichage solvabilité client
     st.header("**Analyse dossier client**")
-    st.markdown("<u>Probabilité de risque de faillite du client :</u>", unsafe_allow_html=True)
+    st.markdown("<u>Probabilité de risque de faillite du client :</u>",
+                unsafe_allow_html=True)
     prediction = load_prediction(id_client)
     st.write(round(prediction * 100, 2), "%")
     st.markdown("<u>Données client :</u>", unsafe_allow_html=True)
     st.write(identite_client())
-# 
+#
     # Affichage des informations du client et explication avec SHAP
     # st.header("Informations client et explication SHAP")
     # shap.initjs()
@@ -156,7 +172,7 @@ def main():
     #     if shap_data:
     #         st.write("Graphique SHAP Summary :")
     #         shap_summary_plot = generate_shap_summary_plot(shap_data)
-    #         st.write("SHAP 3 shap_summary_plot", shap_summary_plot)    
+    #         st.write("SHAP 3 shap_summary_plot", shap_summary_plot)
     #         st.pyplot(shap_summary_plot)
     #         st.header("SHAP Values")
 
@@ -165,9 +181,9 @@ def main():
     #         shap_values = shap_data["shap_values"]
     #         st.write("SHAP shap_values", shap_values)
     #         expected_value = shap_data["expected_value"]
-    #         st.write("SHAP expected_value", expected_value)            
+    #         st.write("SHAP expected_value", expected_value)
     #         data_for_prediction = shap_data["data_for_prediction"]
-    #         st.write("SHAP data_for_prediction", data_for_prediction)           
+    #         st.write("SHAP data_for_prediction", data_for_prediction)
 
     #         shap.force_plot(expected_value, shap_values, data_for_prediction)
     # Affichage des dossiers similaires
@@ -175,23 +191,62 @@ def main():
 
     if chk_voisins:
         similar_id = load_voisins()
-        st.markdown("<u>Liste des 10 dossiers les plus proches de ce client :</u>", unsafe_allow_html=True)
+        st.markdown(
+            "<u>Liste des 10 dossiers les plus proches de ce client :</u>", unsafe_allow_html=True)
         st.write(similar_id)
-        st.markdown("<i>Target 1 = Client en faillite</i>", unsafe_allow_html=True)
+        st.markdown("<i>Target 1 = Client en faillite</i>",
+                    unsafe_allow_html=True)
     else:
         st.markdown("<i>Informations masquées</i>", unsafe_allow_html=True)
 
     if st.checkbox("Afficher les informations du client et explication SHAP?"):
         # shap_data = grap_shap()  # Appel de la fonction pour obtenir les valeurs SHAP
         # Appel à la fonction pour afficher les graphiques SHAP
-        predict_explanation()        
+        # predict_explanation()
+
+        shap.initjs()
+
         st.write("SHAP 1 id_client", id_client)
+
+        X_json = requests.get(URL_API + "shap_xgb_x")
+        expected_json = requests.get(URL_API + "shap_xgb_expected")
+        values_json = requests.get(URL_API + "shap_xgb_values")
+        df_json = requests.get(URL_API + "shap_xgb_df")
+
+        X = np.asarray(X_json.json())
+        expected = expected_json.json()
+        values = np.asarray(values_json.json())
+        df = pd.DataFrame.from_dict(df_json.json())
+
+        st_shap(shap.force_plot(expected, values[0, :], df.iloc[0, :]))
+        st_shap(shap.force_plot(expected, values[:500, :], df.iloc[:500, :]), 500)
+
+        plt.figure(figsize=[10,10])
+        shap.summary_plot(values, df, plot_type="bar", show=False)
+        plt.savefig("shap_summary_plot_bar.png")
+        plt.show()
+
+        image = Image.open('shap_summary_plot_bar.png')
+
+        st.image(image)
+
+        plt.figure(figsize=[10,10])
+        shap.summary_plot(values, X, show=False)
+        plt.savefig("shap_summary_plot_values.png")
+        plt.show()
+
+        image = Image.open('shap_summary_plot_values.png')
+
+        st.image(image)
+
+
+
         # st.write("SHAP 2 shap_data", shap_data)
         # Générez les graphiques SHAP dans Streamlit
         # if shap_data:
         #     st.write("Graphique SHAP Summary :")
         #     shap_summary_plot = generate_shap_summary_plot(shap_data)
-        #     st.write("SHAP 3 shap_summary_plot", shap_summary_plot)    
+        #     st.write("SHAP 3 shap_summary_plot", shap_summary_plot)
         #     st.pyplot(shap_summary_plot)
         #     st.header("SHAP Values")
 
@@ -200,14 +255,13 @@ def main():
         #     shap_values = shap_data["shap_values"]
         #     st.write("SHAP shap_values", shap_values)
         #     expected_value = shap_data["expected_value"]
-        #     st.write("SHAP expected_value", expected_value)            
+        #     st.write("SHAP expected_value", expected_value)
         #     data_for_prediction = shap_data["data_for_prediction"]
-        #     st.write("SHAP data_for_prediction", data_for_prediction)           
+        #     st.write("SHAP data_for_prediction", data_for_prediction)
 
         #     shap.force_plot(expected_value, shap_values, data_for_prediction)
 
-
-            # shap.summary_plot(shap_values, subsampled_test_data, feature_names=X_train.columns, max_display=10)
+        # shap.summary_plot(shap_values, subsampled_test_data, feature_names=X_train.columns, max_display=10)
 
         # Utiliser shap.force_plot pour afficher un graphique SHAP interactif
 
@@ -224,23 +278,22 @@ def main():
 
     #     # Utiliser shap.force_plot pour afficher un graphique SHAP interactif
     #     shap.initjs()
-        
+
     #     # Obtenez les données SHAP spécifiques pour le client sélectionné
     #     shap_data = get_shap_data(id_client)
-        
+
     #     # Vérifiez si les données SHAP sont disponibles
     #     if shap_data:
     #         shap_values = shap_data["shap_values"]
     #         st.write("SHAP shap_values", shap_values)
     #         expected_value = shap_data["expected_value"]
-    #         st.write("SHAP expected_value", expected_value)            
+    #         st.write("SHAP expected_value", expected_value)
     #         data_for_prediction = shap_data["data_for_prediction"]
-    #         st.write("SHAP data_for_prediction", data_for_prediction)           
+    #         st.write("SHAP data_for_prediction", data_for_prediction)
 
     #         shap.force_plot(expected_value, shap_values, data_for_prediction)
     #     else:
     #         st.write("Données SHAP non disponibles pour ce client.")
-
 
         # infos_client = identite_client()
         # st.write("Statut famille :", infos_client["NAME_FAMILY_STATUS"][0])
@@ -260,7 +313,7 @@ def main():
 
         # # Obtenez un résumé des valeurs SHAP
         # summary = shap.summary_plot(explanation_data, data_client, show=False, plot_type='bar', max_display=10)
-    
+
         # shap_values = explanation_data["shap_values"]
         # shap_summary_plot = explanation_data["shap_summary_plot"]
         # shap_summary = explanation_data["shap_summary"]
@@ -274,10 +327,16 @@ def main():
         # ... (autres graphiques)
 
     # ... (autres parties du tableau de bord)
-# 
+#
 
+
+def st_shap(plot, height=None):
+    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
+    components.html(shap_html, height=height)
 
 # Fonction pour l'initialisation de l'API
+
+
 @st.cache_data
 def init_api():
     init_api = requests.get(URL_API + "init_model")
@@ -285,12 +344,16 @@ def init_api():
     return "Initialisation application terminée."
 
 # Fonction pour charger le logo
+
+
 @st.cache_data
 def load_logo():
     logo = Image.open("logo.png")
     return logo
 
 # Fonction pour charger la liste des ID clients
+
+
 @st.cache_data
 def load_selectbox():
     data_json = requests.get(URL_API + "load_data")
@@ -299,6 +362,8 @@ def load_selectbox():
     return lst_id
 
 # Fonction pour charger les informations générales
+
+
 @st.cache_data
 def load_infos_gen():
     infos_gen = requests.get(URL_API + "infos_gen")
@@ -311,30 +376,36 @@ def load_infos_gen():
     return nb_credits, rev_moy, credits_moy, targets
 
 # Fonction pour récupérer les informations du client sélectionné
+
+
 @st.cache_data
 def identite_client():
-    infos_client = requests.get(URL_API + "infos_client", params={"id_client": id_client})
+    infos_client = requests.get(
+        URL_API + "infos_client", params={"id_client": id_client})
     infos_client = json.loads(infos_client.content.decode("utf-8"))
     infos_client = pd.DataFrame.from_dict(infos_client).T
     return infos_client
 
 # Fonction pour charger l'âge de la population
+
+
 @st.cache_data
 def load_age_population():
     data_age_json = requests.get(URL_API + "load_age_population")
     data_age = data_age_json.json()
     return data_age
 
+
 @st.cache_data  # 👈 Add the caching decorator
-def load_revenus_population():    
-    # Requête permettant de récupérer des tranches de revenus 
+def load_revenus_population():
+    # Requête permettant de récupérer des tranches de revenus
     # de la population pour le graphique situant le client
     data_revenus_json = requests.get(URL_API + "load_revenus_population")
-    
+
     data_revenus = data_revenus_json.json()
 
     return data_revenus
-  
+
 
 # Fonction pour charger les load_prediction_explanation
 # @st.cache_data
@@ -354,7 +425,7 @@ def load_revenus_population():
 #     try:
 #         explanation_data = requests.get(URL_API + "predict_explanation", params={"id_client": id_client})
 #         explanation_data = explanation_data.json()
-        
+
 #         if "shap_values" in explanation_data:
 #             return explanation_data["shap_values"]
 #         else:
@@ -380,7 +451,7 @@ def load_revenus_population():
 #         st.write(f"explanation_data  : {explanation_data}")
 #         explanation_data = explanation_data.json()
 #         # shap.multioutput_decision_plot(expected_value, shap_values, row_index=row_index, feature_names=feature_names, highlight=highlight)
-#         shap.summary_plot(explanation_data, feature_names=df_train.columns)      
+#         shap.summary_plot(explanation_data, feature_names=df_train.columns)
 #         # if "shap_values" in explanation_data:
 #         #     return explanation_data["shap_values"]
 #         # else:
@@ -395,13 +466,13 @@ def predict_explanation():
         explanation_data = requests.get(URL_API + "predict_explanation")
         st.write(f"explanation_data  : {explanation_data}")
         explanation_data = explanation_data.json()
-        
+
         # Si vous avez obtenu des données SHAP, vous pouvez les afficher.
         if "data" in explanation_data:
             shap_df = explanation_data["data"]
             shap_values = shap_df['data']
             feature_names = shap_df['columns']
-            
+
             # Affichez le graphique SHAP
             shap.summary_plot(shap_values, feature_names=feature_names)
         else:
@@ -409,12 +480,19 @@ def predict_explanation():
     except json.JSONDecodeError as e:
         st.error(f"Erreur lors de la récupération des explications : {e}")
 
-def generate_decision_plot(log_reg_explainer, X_test, row_index=0, highlight=None):
-    expected_value = [log_reg_explainer.expected_value.tolist()]  # Convertit la valeur attendue en liste
-    shap_values = [log_reg_explainer.shap_values(X_test)]  # Convertit les valeurs SHAP en liste
-    feature_names = df_train.columns.tolist()  # Convertit les noms de colonnes en liste
 
-    shap.multioutput_decision_plot(expected_value, shap_values, row_index=row_index, feature_names=feature_names, highlight=highlight)
+def generate_decision_plot(log_reg_explainer, X_test, row_index=0, highlight=None):
+    # Convertit la valeur attendue en liste
+    expected_value = [log_reg_explainer.expected_value.tolist()]
+    # Convertit les valeurs SHAP en liste
+    shap_values = [log_reg_explainer.shap_values(X_test)]
+    # Convertit les noms de colonnes en liste
+    feature_names = df_train.columns.tolist()
+
+    shap.multioutput_decision_plot(
+        expected_value, shap_values, row_index=row_index, feature_names=feature_names, highlight=highlight)
+
+
 def generate_summary_plot(log_reg_explainer, X_test):
     shap.summary_plot(log_reg_explainer.shap_values(X_test),
                       feature_names=df_train.columns)
@@ -425,7 +503,7 @@ def generate_summary_plot(log_reg_explainer, X_test):
 #         log_reg_explainer , X_test = requests.get(URL_API + "grap_shap") #, params={"id_client": id_client})
 #         # st.write("grap_shap shap_data", shap_data)
 #         st.write("grap_shap id_client", id_client)
-#         generate_decision_plot(log_reg_explainer, X_test)    
+#         generate_decision_plot(log_reg_explainer, X_test)
 #         generate_summary_plot(log_reg_explainer, X_test)
 #         # if not shap_data.text:
 #         #     st.error("Erreur lors de la récupération des données SHAP, shap_data.text est vide.")
@@ -467,7 +545,7 @@ def generate_summary_plot(log_reg_explainer, X_test):
 #         if response.status_code == 200:
 #             X, Y = response.json()
 #             log_reg, X_test, X_train, Y_train, Y_test = train_logistic_regression(X, Y)
-        
+
 #             log_reg_explainer = shap.LinearExplainer(log_reg, X_train)
 
 #             sample_idx = 0
@@ -477,7 +555,7 @@ def generate_summary_plot(log_reg_explainer, X_test):
 #             shap_values = log_reg_explainer.shap_values(X_test)
 #             feature_names = X_test.columns.tolist()
 #             st.write(f"feature_names : {feature_names}")
-            
+
 #             # Créez des graphiques SHAP
 #             shap.multioutput_decision_plot(expected_value, shap_values, feature_names=feature_names)
 #             shap.summary_plot(shap_values, feature_names=feature_names)
@@ -489,11 +567,11 @@ def generate_summary_plot(log_reg_explainer, X_test):
 # def train_logistic_regression(X, Y):
 #     logging.info("Début train_logistic_regression dans api")
 #     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, train_size=0.85, test_size=0.15, stratify=Y, random_state=123, shuffle=True)
-    
+
 #     imputer = SimpleImputer(strategy='mean')
 #     X_train = imputer.fit_transform(X_train)
 #     X_test = imputer.transform(X_test)
-    
+
 #     log_reg = LogisticRegression()
 #     log_reg.fit(X_train, Y_train)
 #     logging.info("Fin train_logistic_regression dans api")
@@ -501,7 +579,7 @@ def generate_summary_plot(log_reg_explainer, X_test):
 
 # def explain_sample_with_shap(log_reg, log_reg_explainer, X_test, sample_idx):
 #     shap_vals = log_reg_explainer.shap_values(X_test[sample_idx])
-    
+
 # @st.cache_data
 # def predict_explanation():
 #     try:
@@ -531,16 +609,17 @@ def generate_summary_plot(log_reg_explainer, X_test):
 # def load_prediction(id_client):
 #     # Envoie une requête à l'API pour récupérer la prédiction de risque de faillite pour le client sélectionné
 #     prediction = requests.get(URL_API + "predict", params={"id_client": id_client})
-    
+
 #     # Transforme la réponse en format JSON en utilisant .json()
 #     prediction = prediction.json()
-    
+
 #     # Renvoie la probabilité de risque de faillite du client (seconde valeur du tableau JSON, index 1)
 #     return prediction[1]
 @st.cache_data
 def load_prediction(id_client):
     try:
-        prediction = requests.get(URL_API + "predict", params={"id_client": id_client})
+        prediction = requests.get(
+            URL_API + "predict", params={"id_client": id_client})
         prediction = prediction.json()
         if prediction:
             return prediction[1]
@@ -556,11 +635,11 @@ def load_prediction(id_client):
 #     if prediction is None:# or not prediction.text:
 #         # Réponse vide ou nulle, renvoyer 0
 #         return 0
-    
+
 #     try:
 #         # Tenter de décoder la réponse en JSON
 #         prediction_data = prediction.json()
-        
+
 #         # Vérifier si la réponse est un dictionnaire contenant la prédiction
 #         if isinstance(prediction_data, dict) and 'prediction' in prediction_data:
 #             return prediction_data['prediction']
@@ -572,25 +651,28 @@ def load_prediction(id_client):
 #         return 0
 
 # Fonction pour charger les dossiers similaires
+
+
 @st.cache_data  # Utilisation de la fonction de cache de Streamlit pour éviter des appels répétés à l'API
 def load_voisins():
     try:
         # Envoie une requête à l'API pour récupérer les dossiers similaires au client sélectionné
-        voisins = requests.get(URL_API + "load_voisins", params={"id_client": id_client})
-        
+        voisins = requests.get(URL_API + "load_voisins",
+                               params={"id_client": id_client})
+
         # Transforme la réponse en dictionnaire Python
         voisins = json.loads(voisins.content.decode("utf-8"))
-        
+
         # Transforme le dictionnaire en un DataFrame pour une meilleure manipulation
         voisins = pd.DataFrame.from_dict(voisins).T
-        
+
         # Extraction de la colonne "TARGET" (solvabilité) pour plus de lisibilité
         target = voisins["TARGET"]
         # Suppression de la colonne "TARGET" du DataFrame (afin d'éviter les redondances)
         voisins.drop(labels=["TARGET"], axis=1, inplace=True)
         # Réinsère la colonne "TARGET" en première position dans le DataFrame
         voisins.insert(0, "TARGET", target)
-        
+
         # Renvoie le DataFrame contenant les dossiers similaires
         return voisins
     except ValueError:
@@ -599,27 +681,26 @@ def load_voisins():
 # def load_voisins():
 #     # Envoie une requête à l'API pour récupérer les dossiers similaires au client sélectionné
 #     voisins = requests.get(URL_API + "load_voisins", params={"id_client": id_client})
-    
+
 #     # Vérifiez si la réponse est vide ou nulle
 #     if not voisins.text:
 #         return {}  # Retournez un dictionnaire vide ou une autre valeur par défaut
-    
+
 #     # Transforme la réponse en dictionnaire Python
 #     voisins = json.loads(voisins.content.decode("utf-8"))
-    
+
 #     # Transforme le dictionnaire en un DataFrame pour une meilleure manipulation
 #     voisins = pd.DataFrame.from_dict(voisins).T
-    
+
 #     # Extraction de la colonne "TARGET" (solvabilité) pour plus de lisibilité
 #     target = voisins["TARGET"]
 #     # Suppression de la colonne "TARGET" du DataFrame (afin d'éviter les redondances)
 #     voisins.drop(labels=["TARGET"], axis=1, inplace=True)
 #     # Réinsère la colonne "TARGET" en première position dans le DataFrame
 #     voisins.insert(0, "TARGET", target)
-    
+
 #     # Renvoie le DataFrame contenant les dossiers similaires
 #     return voisins
-
 
 
 if __name__ == "__main__":
