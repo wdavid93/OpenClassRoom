@@ -1,0 +1,6 @@
+sparkdl
+keras
+tensorflow
+tensorframes
+kafka
+findspark

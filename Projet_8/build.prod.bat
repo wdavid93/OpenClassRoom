@@ -1,0 +1,1 @@
+docker build -t prod P8Prod
