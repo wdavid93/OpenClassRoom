@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  # Service pour l'API de Projet 7
+  projet7API:
+    image: projet_7_aj:0.4.0
+    container_name: projet7_prod_aj
+    restart: unless-stopped
+    ports:
+      - 7781:80  # Mappe le port 80 du conteneur au port 7780 de l'hôte
+    volumes:
+      - ../api_config_prod_AJ:/app  # Montage du répertoire local "api_docker" dans le conteneur sous "/app"
+      - ../api_config_prod_AJ/config.toml:/root/.streamlit/config.toml

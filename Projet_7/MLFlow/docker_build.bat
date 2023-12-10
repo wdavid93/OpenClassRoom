@@ -1,0 +1,1 @@
+docker build -t py-mlflow:0.4.0 image

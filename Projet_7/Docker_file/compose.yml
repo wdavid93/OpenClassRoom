@@ -7,9 +7,9 @@ services:
     container_name: projet7api
     restart: unless-stopped
     ports:
-      - 5000:5000  # Mappe le port 5000 du conteneur au port 5000 de l'hôte
+      - 5001:5001  # Mappe le port 5000 du conteneur au port 5000 de l'hôte
     volumes:
-      - ./api_docker:/app  # Montage du répertoire local "api_docker" dans le conteneur sous "/app"
+      - ../api_docker:/app  # Montage du répertoire local "api_docker" dans le conteneur sous "/app"
     networks:
       - projet7-net  # Utilise le réseau "projet7-net" pour la communication
 
@@ -21,7 +21,7 @@ services:
     ports:
       - 8501:8501  # Mappe le port 8501 du conteneur au port 8501 de l'hôte
     volumes:
-      - ./dashboard_docker:/app  # Montage du répertoire local "dashboard_docker" dans le conteneur sous "/app"
+      - ../dashboard_docker:/app  # Montage du répertoire local "dashboard_docker" dans le conteneur sous "/app"
     networks:
       - projet7-net  # Utilise le réseau "projet7-net" pour la communication
 

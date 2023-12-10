@@ -13,6 +13,22 @@ import xgboost as xgb
 
 from joblib import load
 
+import shape
+
+@st.cache_data
+def load_prediction_with_shap(data_test, test, id, clf):
+    index = data_test[data_test["SK_ID_CURR"] == int(id)].index.values
+    index = index[0]
+    data_client = test.iloc[index]
+    prediction = clf.predict_proba(data_client)
+    prediction = prediction[0].tolist()
+
+    # Créez un objet explainer SHAP
+    explainer = shap.Explainer(clf)
+    shap_values = explainer.shap_values(data_client)
+
+    return prediction[1], shap_values
+
 @st.cache_data
 def load_data():
 
@@ -71,7 +87,7 @@ def load_infos_gen(data_train):
 
     return nb_credits, rev_moy, credits_moy, targets
 
-
+@st.cache_data
 def identite_client(data_test, id):
 
     data_client = data_test[data_test["SK_ID_CURR"] == int(id)]
@@ -296,3 +312,4 @@ if chk_voisins:
     st.markdown("<i>Target 1 = Client en faillite</i>", unsafe_allow_html=True)
 else:
     st.markdown("<i>Informations masquées</i>", unsafe_allow_html=True)
+

@@ -3,28 +3,11 @@ version: "3"
 services:
   # Service pour l'API de Projet 7
   projet7API:
-    image: proejet7api:latest
-    container_name: projet7api
+    image: projet7:latest
+    container_name: projet7_prod
     restart: unless-stopped
     ports:
-      - 5000:5000  # Mappe le port 5000 du conteneur au port 5000 de l'hôte
+      - 7780:80  # Mappe le port 80 du conteneur au port 7780 de l'hôte
     volumes:
-      - ./api_docker:/app  # Montage du répertoire local "api_docker" dans le conteneur sous "/app"
-    networks:
-      - projet7-net  # Utilise le réseau "projet7-net" pour la communication
-
-  # Service pour le tableau de bord de Projet 7
-  projet7Dashboard:
-    image: proejet7dashboard:latest
-    container_name: projet7dashboard
-    restart: unless-stopped
-    ports:
-      - 8501:8501  # Mappe le port 8501 du conteneur au port 8501 de l'hôte
-    volumes:
-      - ./dashboard_docker:/app  # Montage du répertoire local "dashboard_docker" dans le conteneur sous "/app"
-    networks:
-      - projet7-net  # Utilise le réseau "projet7-net" pour la communication
-
-networks:
-  projet7-net:
-    external: false
+      - ./api_config_prod:/app  # Montage du répertoire local "api_docker" dans le conteneur sous "/app"
+      - ./api_config_prod/config.toml:/root/.streamlit/config.toml
