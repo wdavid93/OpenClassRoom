@@ -1,1 +1,1 @@
-docker build -t tensorspark P8TensorSparks
+docker build -t tensorspark P8TensorSpark

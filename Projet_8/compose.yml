@@ -9,6 +9,8 @@ services:
       - "4040:4040"
     volumes:
       - ./data:/home/jovyan/data
+    environment:
+      - JUPYTER_TOKEN=openclassroom_project_token
 
 #   namenode:
 #      image: apache/hadoop:3
