@@ -10,7 +10,7 @@ services:
     volumes:
       - ./data:/home/jovyan/data
     environment:
-      - JUPYTER_TOKEN=openclassroom_project_token
+      - JUPYTER_TOKEN=wiwi_super_secret_code_project_token
 
 #   namenode:
 #      image: apache/hadoop:3

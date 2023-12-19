@@ -12,4 +12,3 @@ RUN pip install pyarrow
 RUN pip install boto3
 RUN pip install s3fs
 RUN pip install fsspec
-RUN pip install xgo
